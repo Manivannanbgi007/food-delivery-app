@@ -1,0 +1,295 @@
+/**
+ * The keys under which React Query keeps API data. One list, so the same data always has the same key.
+ * Keys are nested: invalidating QUERY_KEYS.orders.all reloads every order list, order and order history at once
+ * (what a change such as "cancel order" needs).
+ */
+export const QUERY_KEYS = {
+  currentUser: (userId) => ['users', 'me', userId],
+  unreadNotificationCount: (userId) => ['notifications', 'unread-count', userId],
+  /** Everything of the acting user's inbox: the list and the number on the bell */
+  inboxAll: ['notifications'],
+  inbox: (userId, unreadOnly, page) => ['notifications', 'inbox', userId, unreadOnly, page],
+  dashboard: (days) => ['admin', 'dashboard', days],
+  dashboardAll: ['admin', 'dashboard'],
+  calendar: (from, to) => ['admin', 'calendar', from, to],
+  orderActivity: (fromDate, toDate) => ['admin', 'dashboard', 'order-activity', fromDate, toDate],
+  /** The AI assistant, per user (a different user never sees another one's conversation) */
+  assistant: {
+    all: ['assistant'],
+    status: (userId) => ['assistant', userId, 'status'],
+    suggestions: (userId, role) => ['assistant', userId, 'suggestions', role],
+    conversation: (userId, conversationId) => ['assistant', userId, 'conversation', conversationId],
+  },
+  /** Everything of the signed-in delivery partner: dropped when they sign in or out */
+  partnerAreaAll: ['partner-area'],
+  partnerArea: {
+    all: (partnerId) => ['partner-area', partnerId],
+    me: (partnerId) => ['partner-area', partnerId, 'me'],
+    current: (partnerId) => ['partner-area', partnerId, 'current'],
+    history: (partnerId, status, page, size) => [
+      'partner-area',
+      partnerId,
+      'history',
+      status,
+      page,
+      size,
+    ],
+    delivery: (partnerId, deliveryId) => ['partner-area', partnerId, 'delivery', deliveryId],
+  },
+  /** Everything of the signed-in restaurant owner: dropped when they sign in or out */
+  ownerAll: ['owner'],
+  owner: {
+    restaurants: (ownerId) => ['owner', ownerId, 'restaurants'],
+    restaurant: (ownerId, restaurantId) => ['owner', ownerId, 'restaurants', restaurantId],
+    /** Every order list, order and number of all the owner's restaurants */
+    allOrders: (ownerId) => ['owner', ownerId, 'orders'],
+    /** Every order list, order and number built from the orders of one restaurant */
+    ordersAll: (ownerId, restaurantId) => ['owner', ownerId, 'orders', restaurantId],
+    orders: (ownerId, restaurantId, filters, page, size) => [
+      'owner',
+      ownerId,
+      'orders',
+      restaurantId,
+      'list',
+      filters,
+      page,
+      size,
+    ],
+    order: (ownerId, restaurantId, orderId) => [
+      'owner',
+      ownerId,
+      'orders',
+      restaurantId,
+      'order',
+      orderId,
+    ],
+    /** Under ordersAll: an order action (accept, ready, ...) reloads the counts with the lists */
+    orderCount: (ownerId, restaurantId, filters) => [
+      'owner',
+      ownerId,
+      'orders',
+      restaurantId,
+      'count',
+      filters,
+    ],
+    sales: (ownerId, restaurantId, fromDate, toDate) => [
+      'owner',
+      ownerId,
+      'orders',
+      restaurantId,
+      'sales',
+      fromDate,
+      toDate,
+    ],
+    topItems: (ownerId, restaurantId, fromDate, toDate) => [
+      'owner',
+      ownerId,
+      'orders',
+      restaurantId,
+      'top-items',
+      fromDate,
+      toDate,
+    ],
+    menu: (ownerId, restaurantId) => ['owner', ownerId, 'menu', restaurantId],
+  },
+  /** Everything of the signed-in customer (cart, addresses, orders): dropped when they sign in or out */
+  customerAll: ['customer'],
+  customer: {
+    cart: (customerId) => ['customer', customerId, 'cart'],
+    addresses: (customerId) => ['customer', customerId, 'addresses'],
+    order: (customerId, orderId) => ['customer', customerId, 'orders', orderId],
+    /** With the page size: "My orders" and the dashboard ask for pages of different sizes */
+    orders: (customerId, status, page, size) => [
+      'customer',
+      customerId,
+      'orders',
+      'list',
+      status,
+      page,
+      size,
+    ],
+    allOrders: (customerId) => ['customer', customerId, 'orders'],
+    // The dashboard's figures sit under the orders: whatever refreshes the orders refreshes them too
+    orderSummary: (customerId) => ['customer', customerId, 'orders', 'summary'],
+    orderActivity: (customerId, fromDate, toDate) => [
+      'customer',
+      customerId,
+      'orders',
+      'activity',
+      fromDate,
+      toDate,
+    ],
+    favouriteDishes: (customerId, limit) => [
+      'customer',
+      customerId,
+      'orders',
+      'favourite-dishes',
+      limit,
+    ],
+    tracking: (customerId, orderId) => ['customer', customerId, 'tracking', orderId],
+    allTracking: (customerId) => ['customer', customerId, 'tracking'],
+    liveTracking: (customerId, orderId) => ['customer', customerId, 'tracking', orderId, 'live'],
+  },
+  /** Public data of the customer area (the same for everybody) */
+  storefront: {
+    restaurants: (filters, page, size) => ['storefront', 'restaurants', filters, page, size],
+    restaurant: (restaurantId) => ['storefront', 'restaurant', restaurantId],
+    menu: (restaurantId) => ['storefront', 'menu', restaurantId],
+    categories: ['storefront', 'categories'],
+    /** Whether online payments use Razorpay Checkout (the same for every customer) */
+    razorpayConfig: ['storefront', 'razorpay-config'],
+    offers: (restaurantId) => ['storefront', 'offers', restaurantId],
+    searchRestaurants: (params, page) => ['storefront', 'search', 'restaurants', params, page],
+    /** With the page size: the search page and the dashboard's suggestions ask for pages of different sizes */
+    searchFoods: (params, page, size) => ['storefront', 'search', 'foods', params, page, size],
+    suggest: (text) => ['storefront', 'suggest', text],
+  },
+  /** Every report and analytics figure of the admin area */
+  reportsAll: ['admin', 'reports'],
+  monthlyRevenue: (year) => ['admin', 'reports', 'revenue', 'monthly', year],
+  reports: {
+    orders: (params) => ['admin', 'reports', 'orders', params],
+    revenue: (params, groupBy) => ['admin', 'reports', 'revenue', params, groupBy],
+    restaurants: (params) => ['admin', 'reports', 'restaurants', params],
+    customers: (params) => ['admin', 'reports', 'customers', params],
+    deliveries: (params) => ['admin', 'reports', 'deliveries', params],
+  },
+  auditLogs: {
+    all: ['admin', 'audit-logs'],
+    list: (filters, page, size) => ['admin', 'audit-logs', 'list', filters, page, size],
+    actions: ['admin', 'audit-logs', 'actions'],
+    details: (auditId) => ['admin', 'audit-logs', 'details', auditId],
+  },
+  /** Support chat. Staff: the shared inbox; mine: the acting participant's own conversation (per user). */
+  chat: {
+    staffAll: ['chat', 'staff'],
+    conversationsAll: ['chat', 'staff', 'conversations'],
+    conversations: (search) => ['chat', 'staff', 'conversations', search],
+    conversation: (id) => ['chat', 'staff', 'conversation', id],
+    messages: (id, search) => ['chat', 'staff', 'messages', id, search],
+    unreadCount: ['chat', 'staff', 'unread-count'],
+    mineAll: (userId) => ['chat', 'mine', userId],
+    myConversation: (userId) => ['chat', 'mine', userId, 'conversation'],
+    myMessages: (userId) => ['chat', 'mine', userId, 'messages'],
+  },
+  adminNotifications: {
+    all: ['admin', 'notifications'],
+    list: (filters, page, size) => ['admin', 'notifications', 'list', filters, page, size],
+    summary: (fromDate, toDate) => ['admin', 'notifications', 'summary', fromDate, toDate],
+    details: (notificationId) => ['admin', 'notifications', 'details', notificationId],
+    auditLogs: (notificationId) => ['admin', 'notifications', 'audit-logs', notificationId],
+  },
+
+  orders: {
+    all: ['admin', 'orders'],
+    list: (filters, page, size) => ['admin', 'orders', 'list', filters, page, size],
+    details: (orderId) => ['admin', 'orders', 'details', orderId],
+    auditLogs: (orderId) => ['admin', 'orders', 'audit-logs', orderId],
+    customerSummary: (customerId) => ['admin', 'orders', 'customer-summary', customerId],
+    dishRevenue: (menuItemId, period) => ['admin', 'orders', 'dish-revenue', menuItemId, period],
+    customerTopFoods: (customerId, period, limit) => [
+      'admin',
+      'orders',
+      'customer-top-foods',
+      customerId,
+      period,
+      limit,
+    ],
+  },
+  users: {
+    all: ['admin', 'users'],
+    list: (filters, page, size) => ['admin', 'users', 'list', filters, page, size],
+    details: (userId) => ['admin', 'users', 'details', userId],
+    auditLogs: (userId) => ['admin', 'users', 'audit-logs', userId],
+    addresses: (userId) => ['admin', 'users', 'addresses', userId],
+  },
+  menuItems: {
+    all: ['admin', 'menu-items'],
+    list: (filters, page, size) => ['admin', 'menu-items', 'list', filters, page, size],
+    details: (itemId) => ['admin', 'menu-items', 'details', itemId],
+    categoryStats: (limit) => ['admin', 'menu-items', 'category-stats', limit],
+    auditLogs: (itemId) => ['admin', 'menu-items', 'audit-logs', itemId],
+  },
+  categories: ['admin', 'categories'],
+  categoryAuditLogs: (categoryId) => ['admin', 'categories', 'audit-logs', categoryId],
+  restaurants: {
+    all: ['admin', 'restaurants'],
+    list: (filters, page, size) => ['admin', 'restaurants', 'list', filters, page, size],
+    details: (restaurantId) => ['admin', 'restaurants', 'details', restaurantId],
+    auditLogs: (restaurantId) => ['admin', 'restaurants', 'audit-logs', restaurantId],
+  },
+  coupons: {
+    all: ['admin', 'coupons'],
+    list: (filters, page, size) => ['admin', 'coupons', 'list', filters, page, size],
+    details: (couponId) => ['admin', 'coupons', 'details', couponId],
+    redemptions: (couponId, status, page) => [
+      'admin',
+      'coupons',
+      'redemptions',
+      couponId,
+      status,
+      page,
+    ],
+    auditLogs: (couponId) => ['admin', 'coupons', 'audit-logs', couponId],
+  },
+  reviews: {
+    all: ['admin', 'reviews'],
+    list: (filters, size) => ['admin', 'reviews', 'list', filters, size],
+    summary: (scope) => ['admin', 'reviews', 'summary', scope],
+    featured: (scope, page, size) => ['admin', 'reviews', 'featured', scope, page, size],
+    customerLikedDishes: (customerId, period, limit) => [
+      'admin',
+      'reviews',
+      'customer-liked-dishes',
+      customerId,
+      period,
+      limit,
+    ],
+  },
+  /** Public ratings of restaurants and dishes (shown on cards, lists and detail pages) */
+  ratings: {
+    all: ['ratings'],
+    restaurants: (ids) => ['ratings', 'restaurants', ids],
+    dishes: (ids) => ['ratings', 'dishes', ids],
+    restaurant: (restaurantId) => ['ratings', 'restaurant', restaurantId],
+    dish: (menuItemId) => ['ratings', 'dish', menuItemId],
+    restaurantReviews: (restaurantId, sort, page) => [
+      'ratings',
+      'restaurant-reviews',
+      restaurantId,
+      sort,
+      page,
+    ],
+    dishReviews: (menuItemId, page) => ['ratings', 'dish-reviews', menuItemId, page],
+  },
+  /** A customer's review of one order (404 until they write it) */
+  orderReview: (customerId, orderId) => ['customer', customerId, 'review', orderId],
+  payments: {
+    all: ['admin', 'payments'],
+    list: (filters, page, size) => ['admin', 'payments', 'list', filters, page, size],
+    summary: (fromDate, toDate) => ['admin', 'payments', 'summary', fromDate, toDate],
+    details: (paymentId) => ['admin', 'payments', 'details', paymentId],
+    auditLogs: (paymentId) => ['admin', 'payments', 'audit-logs', paymentId],
+  },
+  deliveries: {
+    all: ['admin', 'deliveries'],
+    list: (filters, page, size) => ['admin', 'deliveries', 'list', filters, page, size],
+    delayed: (page) => ['admin', 'deliveries', 'delayed', page],
+    summary: (fromDate, toDate) => ['admin', 'deliveries', 'summary', fromDate, toDate],
+    details: (deliveryId) => ['admin', 'deliveries', 'details', deliveryId],
+    auditLogs: (deliveryId) => ['admin', 'deliveries', 'audit-logs', deliveryId],
+  },
+  partners: {
+    all: ['admin', 'partners'],
+    list: (filters, page, size) => ['admin', 'partners', 'list', filters, page, size],
+    availability: ['admin', 'partners', 'availability'],
+    details: (userId) => ['admin', 'partners', 'details', userId],
+    deliveries: (userId, page) => ['admin', 'partners', 'deliveries', userId, page],
+    auditLogs: (userId) => ['admin', 'partners', 'audit-logs', userId],
+  },
+  refunds: {
+    all: ['admin', 'refunds'],
+    list: (filters, page, size) => ['admin', 'refunds', 'list', filters, page, size],
+    details: (refundId) => ['admin', 'refunds', 'details', refundId],
+  },
+};

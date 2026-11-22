@@ -1,0 +1,19 @@
+import { useTooltip } from '@/components/common/Tooltip/useTooltip';
+import { cn } from '@/utils/classNames';
+
+/**
+ * The shared tooltip around a button or link: it appears on hover and keyboard focus, and goes away on click.
+ * It listens on a wrapper, so a disabled button (which gets no mouse events) can still say why it is off.
+ * Where the trigger must be the element itself (the header, the sidebar), use `useTooltip` directly.
+ */
+export function Tooltip({ label, icon, placement, className, children }) {
+  const { trigger, tooltip, hide } = useTooltip({ label, icon, placement });
+  return (
+    <>
+      <span {...trigger} onClickCapture={hide} className={cn('inline-flex', className)}>
+        {children}
+      </span>
+      {tooltip}
+    </>
+  );
+}
